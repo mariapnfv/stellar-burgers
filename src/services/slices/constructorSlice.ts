@@ -34,6 +34,21 @@ export const constructorSlice = createSlice({
         (item) => item.id !== action.payload
       );
     },
+    reorderIngredient: (
+      state,
+      action: PayloadAction<{ index: number; direction: 'up' | 'down' }>
+    ) => {
+      const { index, direction } = action.payload;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+      if (targetIndex >= 0 && targetIndex < state.ingredients.length) {
+        const ingredient = state.ingredients[index];
+        // Удаляем элемент с текущей позиции
+        state.ingredients.splice(index, 1);
+        // Вставляем его на новую позицию
+        state.ingredients.splice(targetIndex, 0, ingredient);
+      }
+    },
     clearConstructor: (state) => {
       state.bun = null;
       state.ingredients = [];
@@ -41,6 +56,10 @@ export const constructorSlice = createSlice({
   }
 });
 
-export const { addIngredient, removeIngredient, clearConstructor } =
-  constructorSlice.actions;
+export const {
+  addIngredient,
+  removeIngredient,
+  clearConstructor,
+  reorderIngredient
+} = constructorSlice.actions;
 export default constructorSlice.reducer;

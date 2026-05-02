@@ -1,32 +1,45 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
 import { useSelector, useDispatch } from '../../services/store';
+import {
+  getOrderByNumber,
+  clearOrderData
+} from '../../services/slices/orderSlice';
 import { useParams } from 'react-router-dom';
 
 export const OrderInfo: FC = () => {
   /** TODO: взять переменные orderData и ingredients из стора */
   const { number } = useParams<{ number: string }>();
-
+  const dispatch = useDispatch();
   const { ingredients } = useSelector((state) => state.ingredients);
   const orderData = useSelector((state) => {
-    if (state.order.orderModalData?.number === Number(number)) {
-      return state.order.orderModalData;
+    if (state.order.orderByNumber?.number === Number(number)) {
+      return state.order.orderByNumber;
     }
+    const userOrder = state.order.orders.find(
+      (o) => o.number === Number(number)
+    );
+    if (userOrder) return userOrder;
 
     const feedOrder = state.feeds.orders.find(
-      (item) => item.number === Number(number)
+      (o) => o.number === Number(number)
     );
     if (feedOrder) return feedOrder;
 
-    const profileOrder = state.order.orders.find(
-      (item) => item.number === Number(number)
-    );
-    if (profileOrder) return profileOrder;
-
     return null;
   });
+
+  useEffect(() => {
+    if (!orderData && number) {
+      dispatch(getOrderByNumber(+number));
+    }
+    return () => {
+      dispatch(clearOrderData());
+    };
+  }, [dispatch, orderData, number]);
+
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
