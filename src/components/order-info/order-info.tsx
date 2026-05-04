@@ -35,9 +35,6 @@ export const OrderInfo: FC = () => {
     if (!orderData && number) {
       dispatch(getOrderByNumber(+number));
     }
-    return () => {
-      dispatch(clearOrderData());
-    };
   }, [dispatch, orderData, number]);
 
   /* Готовим данные для отображения */
