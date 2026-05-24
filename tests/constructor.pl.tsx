@@ -7,13 +7,10 @@ const MOCK_REFRESH_TOKEN = 'mock-refresh-token';
 test.describe('перехват и мокирование запроса ингредиентов', () => {
 
   test.beforeEach(async ({ page }) => {
-    // НАСТРОЙКА ПЕРЕХВАТА ЗАПРОСА НА ЭНДПОИНТ 'api/ingredients'
-    await page.route('**/api/ingredients', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        json: ingredientsMock,
-      });
+    await page.routeFromHAR('tests/hars/ingredients.har', {
+      url: '**/api/ingredients',
+      notFound: 'fallback',
+      update: false, 
     });
 
     await page.goto('http://localhost:4000');
@@ -27,14 +24,12 @@ test.describe('перехват и мокирование запроса инг�
 });
 
 test.describe('интеграционные тесты страницы конструктора бургеров', () => {
-
+  
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/ingredients', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        json: ingredientsMock,
-      });
+    await page.routeFromHAR('tests/hars/constructor.har', {
+      url: '**/api/**',
+      notFound: 'fallback',
+      update: false, 
     });
 
     await page.route('**/api/auth/user', async (route) => {
@@ -87,7 +82,9 @@ test.describe('интеграционные тесты страницы конс
     await ingredientCard.click();
 
     // проверяем открыто ли окно
-    await expect(page.locator('#modals').getByText('Детали ингредиента').first()).toBeVisible();
+   // await expect(page.locator('#modals').getByText('Детали ингредиента').first()).toBeVisible();
+    // исправлено
+    await expect(page.locator('#modals').getByText(ingredientName).first()).toBeVisible();
   });
 
   test('закрываем модальное окно ингридиента кликом на крестик', async ({ page }) => {
@@ -99,6 +96,7 @@ test.describe('интеграционные тесты страницы конс
     //открываем окно 
     await ingredientCard.click();
     await expect(page.locator('#modals').getByText('Детали ингредиента').first()).toBeVisible();
+  await expect(page.locator('#modals').getByText(ingredientName).first()).toBeVisible();
 
     // закрываем окно
     const closeButton = page.locator('#modals button').first();
@@ -106,6 +104,7 @@ test.describe('интеграционные тесты страницы конс
 
     // проверяем закрыто ли окно
     await expect(page.locator('#modals').getByText('Детали ингредиента')).not.toBeVisible();
+     await expect(page.locator('#modals').getByText(ingredientName)).not.toBeVisible();
   });
 
   test('закрываем модальное окно ингридиента кликом на оверлей', async ({ page }) => {
@@ -116,12 +115,14 @@ test.describe('интеграционные тесты страницы конс
 
     await ingredientCard.click();
     await expect(page.locator('#modals').getByText('Детали ингредиента').first()).toBeVisible();
+     await expect(page.locator('#modals').getByText(ingredientName).first()).toBeVisible();
 
     // многое испробовано, помогло только это (гарантирует клик вне модалки)
     await page.mouse.click(10, 10);
 
     // проверяем закрыто ли окно
     await expect(page.locator('#modals').getByText('Детали ингредиента')).not.toBeVisible();
+     await expect(page.locator('#modals').getByText(ingredientName)).not.toBeVisible();
   });
 
   test('проверяем создание заказа', async ({ page }) => {

@@ -1,4 +1,4 @@
-import store from './store';
+import store, { rootReducer } from './store';
 import { configureStore } from '@reduxjs/toolkit';
 
 describe('тест rootReducer', () => {
@@ -46,5 +46,10 @@ describe('тест rootReducer', () => {
       isLoading: false,
       error: null
     });
+  });
+    test('должен корректно обрабатывать неизвестный экшен и возвращать тот же самый стейт', () => {
+    const sameState = store.getState();
+    const state = rootReducer(sameState, { type: 'UNKNOWN_ACTION' });
+    expect(state).toBe(sameState);
   });
 });
